@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.fasterxml.jackson.dataformat.xml.deser.XmlBeanDeserializerModifier;
+import com.fasterxml.jackson.dataformat.xml.deser.XmlUntypedObjectDeserializer;
 import com.fasterxml.jackson.dataformat.xml.ser.XmlBeanSerializerModifier;
 
 /**
@@ -65,6 +66,9 @@ public class JacksonXmlModule
             XmlMapper m = (XmlMapper) context.getOwner();
             m.setXMLTextElementName(_cfgNameForTextElement);
         }
+        
+        // fix the duplicated elements bug in an untyped Object
+        addDeserializer(Object.class, new XmlUntypedObjectDeserializer());
 
         /* Usually this would be the first call; but here anything added will
          * be stuff user may has added, so do it afterwards instead.

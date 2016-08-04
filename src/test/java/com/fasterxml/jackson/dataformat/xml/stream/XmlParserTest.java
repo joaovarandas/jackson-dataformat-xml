@@ -1,10 +1,16 @@
 package com.fasterxml.jackson.dataformat.xml.stream;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 
-import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlTestBase;
@@ -21,6 +27,7 @@ public class XmlParserTest extends XmlTestBase
     protected JsonFactory _jsonFactory;
     protected XmlFactory _xmlFactory;
     protected XmlMapper _xmlMapper;
+    protected ObjectWriter _objectWriter;
 
     // let's actually reuse XmlMapper to make things bit faster
     @Override
@@ -29,6 +36,7 @@ public class XmlParserTest extends XmlTestBase
         _jsonFactory = new JsonFactory();
         _xmlFactory = new XmlFactory();
         _xmlMapper = new XmlMapper();
+        _objectWriter = new ObjectMapper().writer();
     }
 
     /*
@@ -57,6 +65,13 @@ public class XmlParserTest extends XmlTestBase
                 _readXmlWriteJson("<root><a><b><c>xyz</c></b></a></root>"));
     }
 
+    public void testDuplicatedElementsSwallowing() throws Exception
+    {
+    	// 04-Aug-2016, jpvarandas: ensure that duplicated elements get wrapped into an array and do not get swallowed (deser and ser)
+        assertEquals("{\"name\":\"John\",\"parent\":[\"Jose\",\"Maria\"],\"dogs\":{\"count\":\"3\",\"dog\":[{\"name\":\"Spike\",\"age\":\"12\"},{\"name\":\"Brutus\",\"age\":\"9\"},{\"name\":\"Bob\",\"age\":\"14\"}]}}",
+        		_readXmlToMapToJson("<person><name>John</name><parent>Jose</parent><parent>Maria</parent><dogs><count>3</count><dog><name>Spike</name><age>12</age></dog><dog><name>Brutus</name><age>9</age></dog><dog><name>Bob</name><age>14</age></dog></dogs></person>"));
+    }
+    
     /**
      * Unit test that verifies that we can write sample document from JSON
      * specification as XML, and read it back in "as JSON", with
@@ -269,5 +284,10 @@ public class XmlParserTest extends XmlTestBase
         p.close();
         jg.close();
         return w.toString();
+    }
+    
+    private String _readXmlToMapToJson(String xml) throws IOException
+    {
+        return _objectWriter.writeValueAsString(_xmlMapper.readValue(xml, Object.class));
     }
 }
