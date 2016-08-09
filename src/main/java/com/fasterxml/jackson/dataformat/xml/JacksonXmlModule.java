@@ -67,9 +67,6 @@ public class JacksonXmlModule
             m.setXMLTextElementName(_cfgNameForTextElement);
         }
         
-        // fix the duplicated elements bug in an untyped Object
-        addDeserializer(Object.class, new XmlUntypedObjectDeserializer());
-
         /* Usually this would be the first call; but here anything added will
          * be stuff user may has added, so do it afterwards instead.
          */

@@ -68,9 +68,15 @@ public class XmlParserTest extends XmlTestBase
     public void testDuplicatedElementsSwallowing() throws Exception
     {
     	// 04-Aug-2016, jpvarandas: ensure that duplicated elements get wrapped into an array and do not get swallowed (deser and ser)
-        assertEquals("{\"name\":\"John\",\"parent\":[\"Jose\",\"Maria\"],\"dogs\":{\"count\":\"3\",\"dog\":[{\"name\":\"Spike\",\"age\":\"12\"},{\"name\":\"Brutus\",\"age\":\"9\"},{\"name\":\"Bob\",\"age\":\"14\"}]}}",
-        		_readXmlToMapToJson("<person><name>John</name><parent>Jose</parent><parent>Maria</parent><dogs><count>3</count><dog><name>Spike</name><age>12</age></dog><dog><name>Brutus</name><age>9</age></dog><dog><name>Bob</name><age>14</age></dog></dogs></person>"));
+        assertEquals("{\"id\":\"10\",\"name\":\"John\",\"parent\":[\"Jose\",\"Maria\"],\"dogs\":{\"count\":\"3\",\"dog\":[{\"name\":\"Spike\",\"age\":\"12\"},{\"name\":\"Brutus\",\"age\":\"9\"},{\"name\":\"Bob\",\"age\":\"14\"}]},\"addresses\":{\"address\":[\"Brazil\",\"US\"]}}",
+        		_readXmlToMapToJson("<person id=\"10\"><name>John</name><parent>Jose</parent><parent>Maria</parent><dogs><count>3</count><dog><name>Spike</name><age>12</age></dog><dog><name>Brutus</name><age>9</age></dog><dog><name>Bob</name><age>14</age></dog></dogs><addresses><address>Brazil</address><address>US</address></addresses></person>", true));
+        
+        // using 'false' should keep the deser the way it was before ...
+        assertEquals("{\"id\":\"10\",\"name\":\"John\",\"parent\":\"Maria\",\"dogs\":{\"count\":\"3\",\"dog\":{\"name\":\"Bob\",\"age\":\"14\"}},\"addresses\":{\"address\":\"US\"}}",
+        		_readXmlToMapToJson("<person id=\"10\"><name>John</name><parent>Jose</parent><parent>Maria</parent><dogs><count>3</count><dog><name>Spike</name><age>12</age></dog><dog><name>Brutus</name><age>9</age></dog><dog><name>Bob</name><age>14</age></dog></dogs><addresses><address>Brazil</address><address>US</address></addresses></person>", false));
+
     }
+
     
     /**
      * Unit test that verifies that we can write sample document from JSON
@@ -286,8 +292,10 @@ public class XmlParserTest extends XmlTestBase
         return w.toString();
     }
     
-    private String _readXmlToMapToJson(String xml) throws IOException
+    private String _readXmlToMapToJson(String xml, boolean state) throws IOException
     {
-        return _objectWriter.writeValueAsString(_xmlMapper.readValue(xml, Object.class));
+    	XmlMapper _xmlMapperWithOption = new XmlMapper().setUseXmlUntypedObjectDeserModule(state);
+    	
+        return _objectWriter.writeValueAsString(_xmlMapperWithOption.readValue(xml, Object.class));
     }
 }

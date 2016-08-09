@@ -7,10 +7,16 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
+import com.fasterxml.jackson.dataformat.xml.deser.XmlUntypedObjectDeserializer;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import com.fasterxml.jackson.dataformat.xml.ser.XmlSerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.util.DefaultXmlPrettyPrinter;
@@ -128,6 +134,15 @@ public class XmlMapper extends ObjectMapper
             }
         }
         return this;
+    }
+    
+    public XmlMapper setUseXmlUntypedObjectDeserModule(boolean state) {
+    	if (state == true) {
+    		Module xmlUntypedObjectDeserModule = new SimpleModule().addDeserializer(Object.class, new XmlUntypedObjectDeserializer());
+    		registerModule(xmlUntypedObjectDeserModule);
+    	} 
+    	
+    	return this;
     }
 
     /*
